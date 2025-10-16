@@ -37,5 +37,3 @@ If you prefer to set up manually, follow these steps:
 8. Run `php artisan shield:generate --all` to generate permissions
 9. Run `php artisan shield:super-admin` to create a super admin user
 10. Run `php artisan serve` to start the server
-
-📖 For more detailed setup instructions, see [SETUP.md](SETUP.md)
