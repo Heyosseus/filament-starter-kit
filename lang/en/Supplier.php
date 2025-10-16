@@ -1,0 +1,25 @@
+<?php
+
+return [
+  'code' => 'Code',
+  'product' => 'Product',
+  'spc' => 'SPC',
+  'supplier' => 'Supplier',
+  'supplier_info' => 'Supplier Info',
+  'courier' => 'Courier',
+  'quantity' => 'Quantity',
+  'received' => 'Received',
+  'received_date' => 'Received Date',
+  'overhead_cost' => 'Overhead Cost',
+  'price' => 'Price',
+  'notes' => 'Notes',
+  'contact_person' => 'Contact Person',
+  'account_number' => 'Account Number',
+  'address' => 'Address',
+  'accountant_name' => 'Accountant Name',
+  'juridical_name' => 'Juridical Name',
+  'identification_number' => 'Identification Number',
+  'items' => 'items',
+  'manufacturer' => 'Manufacturer',
+  'district' => 'District',
+];
