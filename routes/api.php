@@ -8,5 +8,3 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/operator', [OperatorController::class, 'index']);
-Route::post('/operator', [OperatorController::class, 'store']);

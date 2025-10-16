@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
         App::setLocale(App::getLocale());
 
         return $panel
-            ->brandName('CrocoShop Admin')
+            ->brandName('Filament Starter Kit')
             ->default()
             ->profile()
             ->databaseNotifications()
@@ -47,9 +47,6 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                OrdersChartWidget::class
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
