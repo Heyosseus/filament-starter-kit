@@ -1,6 +1,18 @@
-# **Crocoshop Admin**
+# **Filament Starter Kit**
 
-It is a simple admin panel built with PHP, Laravel, and Filament.
+A comprehensive Laravel starter kit built with FilamentPHP 3.x that provides a solid foundation for building modern admin panels and web applications. This kit comes pre-configured with essential features including user management, role-based permissions, multi-language support, and various UI components to accelerate your development process.
+
+## **Features**
+
+-   🚀 **Laravel 11** - Latest Laravel framework
+-   🎨 **FilamentPHP 3.x** - Modern admin panel framework
+-   🔐 **Filament Shield** - Complete role and permission management system
+-   🌍 **Multi-language Support** - Language switching capabilities
+-   📝 **Rich Text Editor** - TinyMCE integration for content editing
+-   📊 **Excel Import/Export** - Built-in data import/export functionality
+-   🌳 **Tree/Nested Resources** - Hierarchical data management
+-   👥 **User & Role Management** - Pre-built user and role resources
+-   ⚡ **Quick Setup Command** - One-command initialization
 
 # **Prerequisites**
 
