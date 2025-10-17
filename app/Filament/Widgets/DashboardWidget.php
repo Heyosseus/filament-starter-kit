@@ -47,21 +47,20 @@ class DashboardWidget extends BaseWidget
       $sessionTime = sprintf('%d:%02d', $minutes, $seconds);
     }
 
-    $sessionDescription = 'Session duration';
 
     return [
-      Stat::make('Total Users', $totalUsers)
-        ->description('Admin Users Count')
+      Stat::make(__('Widgets.total_users'), $totalUsers)
+        ->description(__('Widgets.total_users'))
         ->descriptionIcon('heroicon-o-users', IconPosition::Before)
         ->color('success'),
 
-      Stat::make('Roles', $roleCount)
-        ->description('Filament Shield Roles')
+      Stat::make(__('Widgets.roles'), $roleCount)
+        ->description(__('Widgets.filament_shield_roles'))
         ->descriptionIcon('heroicon-o-shield-check', IconPosition::Before)
         ->color('info'),
 
-      Stat::make('My Session', $sessionTime)
-        ->description($sessionDescription)
+      Stat::make(__('Widgets.session'), $sessionTime)
+        ->description(__('Widgets.session_duration'))
         ->descriptionIcon('heroicon-o-clock', IconPosition::Before)
         ->color('warning'),
     ];

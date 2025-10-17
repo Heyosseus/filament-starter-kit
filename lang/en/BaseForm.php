@@ -23,16 +23,7 @@ return [
     'Stock_Status' => 'Stock Status',
     'Payment_Method' => 'Payment Method',
 
-    // vouchers
-    'code' => 'Code',
-    'sale_amount' => 'Sale Amount',
-    'campaign' => 'Campaign',
-    'valid_before' => 'Valid Before',
-    'amount' => 'Amount',
-    'used' => 'Used',
-
     // orders
-    'nj_session' => 'NJ Session',
     'date' => 'Date',
     'products' => 'Products',
     'user_name' => 'User Name',
@@ -46,15 +37,12 @@ return [
 
     // products
     'slug' => 'Slug',
-    'sku' => 'SKU',
     'categories' => 'Categories',
     'image' => 'Image',
     'price' => 'Price',
-    'old_price' => 'Old Price',
-    'get_price' => 'Get Price',
-    'supplier' => 'Supplier',
     'view' => 'View',
-    'landings' => 'Landings',
-    'gifts' => 'Gifts',
-    'stock_status' => 'Stock Status',
+
+    // actions
+    'import' => 'Import',
+    'export' => 'Export',
 ];

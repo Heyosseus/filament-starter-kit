@@ -119,11 +119,11 @@ class UserResource extends Resource implements HasShieldPermissions
             ->headerActions([
                 ImportAction::make()
                     ->importer(UserImporter::class)
-                    ->label('Import')
+                    ->label(__('BaseForm.import'))
                     ->icon('heroicon-o-cloud-arrow-down'),
                 ExportAction::make()
                     ->exporter(UserExporter::class)
-                    ->label('Export')
+                    ->label(__('BaseForm.export'))
                     ->icon('heroicon-o-cloud-arrow-up'),
             ])
             ->bulkActions([
