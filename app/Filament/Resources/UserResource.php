@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Enums\RoleEnums;
+use App\Filament\Exports\UserExporter;
+use App\Filament\Imports\UserImporter;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
@@ -11,8 +13,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Actions\ImportAction;
 use Illuminate\Support\Facades\Hash;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
@@ -113,6 +115,16 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+            ])
+            ->headerActions([
+                ImportAction::make()
+                    ->importer(UserImporter::class)
+                    ->label('Import')
+                    ->icon('heroicon-o-cloud-arrow-down'),
+                ExportAction::make()
+                    ->exporter(UserExporter::class)
+                    ->label('Export')
+                    ->icon('heroicon-o-cloud-arrow-up'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
