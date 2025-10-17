@@ -33,6 +33,11 @@ class RoleResource extends Resource implements HasShieldPermissions
         ];
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return
+            __('SectionList.user_management');
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -161,12 +166,6 @@ class RoleResource extends Resource implements HasShieldPermissions
         return Utils::isResourceNavigationRegistered();
     }
 
-    public static function getNavigationGroup(): ?string
-    {
-        return Utils::isResourceNavigationGroupEnabled()
-            ? __('filament-shield::filament-shield.nav.group')
-            : '';
-    }
 
     public static function getNavigationLabel(): string
     {
