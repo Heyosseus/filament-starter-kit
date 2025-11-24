@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\LogsActivity;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-
-class Role extends Model
+class Role extends SpatieRole
 {
+  use LogsActivity;
+
   protected $table = 'roles';
 }
