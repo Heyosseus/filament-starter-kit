@@ -18,8 +18,6 @@ use Filament\Tables\Actions\ImportAction;
 use Illuminate\Support\Facades\Hash;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-use App\Filament\Resources\RoleResource;
-
 class UserResource extends Resource implements HasShieldPermissions
 
 {
