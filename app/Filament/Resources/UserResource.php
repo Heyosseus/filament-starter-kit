@@ -2,24 +2,21 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\RoleEnums;
 use App\Filament\Exports\UserExporter;
 use App\Filament\Imports\UserImporter;
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Actions\ImportAction;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
-use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
 class UserResource extends Resource implements HasShieldPermissions
-
 {
     protected static ?string $model = User::class;
 
@@ -31,9 +28,9 @@ class UserResource extends Resource implements HasShieldPermissions
 
     public static function getNavigationGroup(): ?string
     {
-        return
-            __('SectionList.user_management');
+        return __('SectionList.user_management');
     }
+
     public static function getPermissionPrefixes(): array
     {
         return [
@@ -44,6 +41,7 @@ class UserResource extends Resource implements HasShieldPermissions
             'delete',
         ];
     }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -71,9 +69,9 @@ class UserResource extends Resource implements HasShieldPermissions
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->label(__('BaseForm.Password'))
-                    ->dehydrateStateUsing(fn($state) => Hash::make($state))
-                    ->dehydrated(fn($state) => filled($state))
-                    ->required(fn(string $context): bool => $context === 'create')
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create'),
             ]);
     }
 

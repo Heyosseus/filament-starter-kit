@@ -7,8 +7,8 @@ use Illuminate\Auth\Events\Logout;
 
 class LogUserLogout
 {
-  public function handle(Logout $event): void
-  {
-    ActivityLogService::log('logout', null, null, null, 'User logged out');
-  }
+    public function handle(Logout $event): void
+    {
+        ActivityLogService::log('logout', null, null, null, 'User logged out');
+    }
 }

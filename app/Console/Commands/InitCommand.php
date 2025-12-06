@@ -11,17 +11,18 @@ use Spatie\Permission\Models\Role;
 class InitCommand extends Command
 {
     protected $signature = 'init {--fresh : Drop all tables and re-run migrations}';
+
     protected $description = 'Initialize the application with migrations, Shield setup, and super admin';
 
     public function handle(): int
     {
         $this->displayHeader();
 
-        if (!$this->checkAndBuildAssets()) {
+        if (! $this->checkAndBuildAssets()) {
             return Command::FAILURE;
         }
 
-        if (!$this->runMigrations()) {
+        if (! $this->runMigrations()) {
             return Command::FAILURE;
         }
 
@@ -43,12 +44,12 @@ class InitCommand extends Command
     {
         $this->info('📋 Checking frontend dependencies...');
 
-        if (!file_exists(base_path('node_modules'))) {
+        if (! file_exists(base_path('node_modules'))) {
             $this->warn('⚠️  Node modules not found.');
             $this->line('Please run: npm install && npm run build');
             $this->newLine();
 
-            if (!$this->confirm('Continue without building assets?', true)) {
+            if (! $this->confirm('Continue without building assets?', true)) {
                 return false;
             }
 
@@ -62,6 +63,7 @@ class InitCommand extends Command
         }
 
         $this->newLine();
+
         return true;
     }
 
@@ -82,8 +84,9 @@ class InitCommand extends Command
         $this->info('📦 Running migrations...');
 
         if ($this->option('fresh')) {
-            if (!$this->confirm('⚠️  This will drop all tables. Continue?', false)) {
+            if (! $this->confirm('⚠️  This will drop all tables. Continue?', false)) {
                 $this->warn('❌ Cancelled');
+
                 return false;
             }
 
@@ -95,6 +98,7 @@ class InitCommand extends Command
         }
 
         $this->newLine();
+
         return true;
     }
 
@@ -109,7 +113,7 @@ class InitCommand extends Command
             ], $this->getOutput());
             $this->info('✅ Permissions generated');
         } catch (\Exception $e) {
-            $this->error('⚠️  Error: ' . $e->getMessage());
+            $this->error('⚠️  Error: '.$e->getMessage());
         }
 
         $this->newLine();
@@ -157,13 +161,13 @@ class InitCommand extends Command
             $this->displayAssetWarning();
         }
 
-        $this->info('🎉 Access your application at: ' . url('/admin'));
+        $this->info('🎉 Access your application at: '.url('/admin'));
     }
 
     protected function shouldShowAssetWarning(): bool
     {
-        return !file_exists(base_path('node_modules'))
-            || !file_exists(public_path('build/manifest.json'));
+        return ! file_exists(base_path('node_modules'))
+            || ! file_exists(public_path('build/manifest.json'));
     }
 
     protected function displayAssetWarning(): void
@@ -177,8 +181,9 @@ class InitCommand extends Command
     {
         $email = $this->ask('Email address');
 
-        if (!$email) {
+        if (! $email) {
             $this->error('Email is required!');
+
             return;
         }
 
@@ -191,7 +196,7 @@ class InitCommand extends Command
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->info('Creating new user...');
             $user = $this->createNewUser($email);
             $this->info('✅ User created');
@@ -207,7 +212,7 @@ class InitCommand extends Command
         $name = $this->ask('Name', 'Admin');
         $password = $this->secret('Password (min 8 characters)');
 
-        if (strlen($password) < 8) {
+        if (strlen((string) $password) < 8) {
             $this->error('Password must be at least 8 characters!');
             exit(1);
         }
@@ -227,7 +232,7 @@ class InitCommand extends Command
             ['guard_name' => 'web']
         );
 
-        if (!$user->hasRole('super_admin')) {
+        if (! $user->hasRole('super_admin')) {
             $user->assignRole('super_admin');
             $this->info('✅ Super admin role assigned');
         } else {
@@ -238,8 +243,8 @@ class InitCommand extends Command
     protected function displayUserInfo(User $user): void
     {
         $this->newLine();
-        $this->line('📧 Email: ' . $user->email);
-        $this->line('👤 Name: ' . $user->name);
+        $this->line('📧 Email: '.$user->email);
+        $this->line('👤 Name: '.$user->name);
         $this->line('🔑 Role: super_admin');
     }
 }

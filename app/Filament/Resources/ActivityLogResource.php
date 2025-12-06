@@ -3,9 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ActivityLogResource\Pages;
-use App\Filament\Resources\ActivityLogResource\RelationManagers;
 use App\Models\ActivityLog;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -19,8 +17,7 @@ class ActivityLogResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return
-            __('SectionList.user_management');
+        return __('SectionList.user_management');
     }
 
     public static function form(Form $form): Form

@@ -4,12 +4,11 @@ namespace App\Providers;
 
 use App\Listeners\LogUserLogin;
 use App\Listeners\LogUserLogout;
+use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Support\ServiceProvider;
-use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // DB::prohibitDestructiveCommands(true);
-        LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
+        LanguageSwitch::configureUsing(function (LanguageSwitch $switch): void {
             $switch
                 ->locales(['en', 'ka']);
         });

@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
-  use LogsActivity;
+    use LogsActivity;
 
-  protected $table = 'roles';
+    protected $table = 'roles';
 }
