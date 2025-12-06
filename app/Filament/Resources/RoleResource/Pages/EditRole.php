@@ -25,7 +25,7 @@ class EditRole extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $this->permissions = collect($data)
-            ->filter(fn($permission, $key): bool => ! in_array($key, ['name', 'guard_name', 'select_all', Utils::getTenantModelForeignKey()]))
+            ->filter(fn ($permission, $key): bool => ! in_array($key, ['name', 'guard_name', 'select_all', Utils::getTenantModelForeignKey()]))
             ->values()
             ->flatten()
             ->unique();

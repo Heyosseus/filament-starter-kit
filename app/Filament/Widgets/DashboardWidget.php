@@ -17,9 +17,9 @@ class DashboardWidget extends BaseWidget
     {
         $cacheDuration = now()->addMinutes(60);
 
-        $roleCount = Cache::remember('role_count', $cacheDuration, fn() => Role::query()->count());
+        $roleCount = Cache::remember('role_count', $cacheDuration, fn () => Role::query()->count());
 
-        $totalUsers = Cache::remember('total_users', $cacheDuration, fn() => User::query()->count());
+        $totalUsers = Cache::remember('total_users', $cacheDuration, fn () => User::query()->count());
 
         if (! session()->has('session_start_time')) {
             session()->put('session_start_time', now()->timestamp);
