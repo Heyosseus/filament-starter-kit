@@ -8,6 +8,7 @@ use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,10 +35,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // DB::prohibitDestructiveCommands(true);
+        DB::prohibitDestructiveCommands(app()->isProduction());
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch): void {
             $switch
                 ->locales(['en', 'ka']);
+        });
+
+
+        DB::whenQueryingForLongerThan(300, function ($query, $time) {
+            Log::warning('Slow Query Detected', [
+                'sql' => $query,
+                'time' => $time,
+            ]);
         });
     }
 }
