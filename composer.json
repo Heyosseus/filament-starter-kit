@@ -3,23 +3,27 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "amidesfahani/filament-tinyeditor": "^2.1",
-        "bezhansalleh/filament-language-switch": "^3.1",
-        "bezhansalleh/filament-shield": "^3.3",
-        "filament/filament": "^3.2",
+        "amidesfahani/filament-tinyeditor": "^4.0",
+        "bezhansalleh/filament-language-switch": "^4.0",
+        "bezhansalleh/filament-shield": "^4.0",
+        "filament/filament": "^4.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
-        "solution-forest/filament-tree": "^2.1"
+        "solution-forest/filament-tree": "^3.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",
         "fakerphp/faker": "^1.23",
+        "filament/upgrade": "^4.0",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",

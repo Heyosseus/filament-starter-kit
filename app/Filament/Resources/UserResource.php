@@ -2,17 +2,26 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\EditAction;
+use Filament\Actions\ImportAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\UserResource\Pages\ListUsers;
+use App\Filament\Resources\UserResource\Pages\CreateUser;
+use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Exports\UserExporter;
 use App\Filament\Imports\UserImporter;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Actions\ExportAction;
-use Filament\Tables\Actions\ImportAction;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,11 +29,11 @@ class UserResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user-plus';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-user-plus';
 
     protected static ?string $title = 'name';
 
-    protected static ?string $navigationGroup;
+    protected static string | \UnitEnum | null $navigationGroup;
 
     public static function getNavigationGroup(): ?string
     {
@@ -42,15 +51,15 @@ class UserResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
+        return $schema
+            ->components([
+                TextInput::make('name')
                     ->label(__('BaseForm.Name'))
                     ->maxLength(255)
                     ->required(),
-                Forms\Components\TextInput::make('email')
+                TextInput::make('email')
                     ->label(__('BaseForm.Email'))
                     ->email()
                     ->unique(
@@ -60,18 +69,18 @@ class UserResource extends Resource implements HasShieldPermissions
                     )
                     ->maxLength(255)
                     ->required(),
-                Forms\Components\Select::make('roles')
+                Select::make('roles')
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->preload()
                     ->default(['4']) // panel_user
                     ->searchable(),
-                Forms\Components\TextInput::make('password')
+                TextInput::make('password')
                     ->password()
                     ->label(__('BaseForm.Password'))
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create'),
+                    ->dehydrateStateUsing(fn($state) => Hash::make($state))
+                    ->dehydrated(fn($state) => filled($state))
+                    ->required(fn(string $context): bool => $context === 'create'),
             ]);
     }
 
@@ -79,27 +88,27 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('BaseForm.Name'))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->label(__('BaseForm.Email'))
                     ->copyable()
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('roles.name') // Add this line
+                TextColumn::make('roles.name') // Add this line
                     ->label(__('BaseForm.roles'))
                     ->badge()
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('BaseForm.created_at'))
                     ->searchable()
                     ->sortable()
                     ->date(),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->label(__('BaseForm.updated_at'))
                     ->copyable()
                     ->searchable()
@@ -109,8 +118,8 @@ class UserResource extends Resource implements HasShieldPermissions
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
             ->headerActions([
                 ImportAction::make()
@@ -122,9 +131,9 @@ class UserResource extends Resource implements HasShieldPermissions
                     ->label(__('BaseForm.export'))
                     ->icon('heroicon-o-cloud-arrow-up'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -139,9 +148,9 @@ class UserResource extends Resource implements HasShieldPermissions
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 

@@ -2,10 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\ActivityLogResource\Pages\ListActivityLogs;
+use App\Filament\Resources\ActivityLogResource\Pages\CreateActivityLog;
+use App\Filament\Resources\ActivityLogResource\Pages\EditActivityLog;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use App\Models\ActivityLog;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -13,17 +21,17 @@ class ActivityLogResource extends Resource
 {
     protected static ?string $model = ActivityLog::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-hashtag';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-hashtag';
 
     public static function getNavigationGroup(): ?string
     {
         return __('SectionList.user_management');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 //
             ]);
     }
@@ -32,28 +40,28 @@ class ActivityLogResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label('User')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('action')
+                TextColumn::make('action')
                     ->label('Action')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('model_type')
+                TextColumn::make('model_type')
                     ->label('Model')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('model_id')
+                TextColumn::make('model_id')
                     ->label('Model ID'),
-                Tables\Columns\TextColumn::make('description')
+                TextColumn::make('description')
                     ->label('Description'),
-                Tables\Columns\TextColumn::make('ip_address')
+                TextColumn::make('ip_address')
                     ->label('IP Address'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Date & Time')
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('action')
+                SelectFilter::make('action')
                     ->options([
                         'created' => 'Created',
                         'updated' => 'Updated',
@@ -61,15 +69,15 @@ class ActivityLogResource extends Resource
                         'login' => 'Login',
                         'logout' => 'Logout',
                     ]),
-                Tables\Filters\SelectFilter::make('user')
+                SelectFilter::make('user')
                     ->relationship('user', 'name'),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -85,9 +93,9 @@ class ActivityLogResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListActivityLogs::route('/'),
-            'create' => Pages\CreateActivityLog::route('/create'),
-            'edit' => Pages\EditActivityLog::route('/{record}/edit'),
+            'index' => ListActivityLogs::route('/'),
+            'create' => CreateActivityLog::route('/create'),
+            'edit' => EditActivityLog::route('/{record}/edit'),
         ];
     }
 }

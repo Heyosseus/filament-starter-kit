@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -112,7 +113,7 @@ class InitCommand extends Command
                 '--panel' => 'admin',
             ], $this->getOutput());
             $this->info('✅ Permissions generated');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('⚠️  Error: '.$e->getMessage());
         }
 

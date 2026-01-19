@@ -15,9 +15,7 @@ return [
 
     'tenant_model' => null,
 
-    'auth_provider_model' => [
-        'fqcn' => \App\Models\User::class,
-    ],
+    'auth_provider_model' => \App\Models\User::class,
 
     'super_admin' => [
         'enabled' => true,
@@ -72,7 +70,8 @@ return [
         ],
 
         'widgets' => [
-            'AccountWidget', 'FilamentInfoWidget',
+            'AccountWidget',
+            'FilamentInfoWidget',
         ],
 
         'resources' => [],

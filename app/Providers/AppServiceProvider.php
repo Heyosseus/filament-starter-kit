@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Listeners\LogUserLogin;
 use App\Listeners\LogUserLogout;
-use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
+use BezhanSalleh\LanguageSwitch\LanguageSwitch;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\DB;
