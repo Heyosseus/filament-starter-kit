@@ -10,6 +10,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    /*
+     * Register everything in app/Listeners by the event each handle* method
+     * type-hints. Without this call Laravel does no discovery at all, and a
+     * listener sitting in that directory simply never runs.
+     */
+    ->withEvents(discover: [__DIR__.'/../app/Listeners'])
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })

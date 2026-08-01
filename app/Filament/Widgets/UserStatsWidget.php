@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Models\Role;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 
 /**
  * The three numbers worth knowing at a glance: how many people exist, how many

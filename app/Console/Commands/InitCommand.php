@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Role;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Spatie\Permission\Models\Role;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\password;
@@ -189,7 +189,12 @@ class InitCommand extends Command
     private function clearCaches(): void
     {
         $this->components->task('Clearing caches', function (): bool {
-            foreach (['cache:clear', 'config:clear', 'route:clear', 'view:clear'] as $command) {
+            /*
+             * event:clear matters as much as the rest: a cached event map
+             * predates any listener added since, and a stale one silently
+             * stops listeners firing rather than failing loudly.
+             */
+            foreach (['cache:clear', 'config:clear', 'route:clear', 'view:clear', 'event:clear'] as $command) {
                 Artisan::call($command);
             }
 

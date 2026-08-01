@@ -27,8 +27,15 @@ written when something is typed, so saving a user never silently resets it.
 
 **Audit trail** — [spatie/laravel-activitylog](https://github.com/spatie/laravel-activitylog)
 records changes to users and roles with a field-by-field diff, attributed to
-whoever made them. Readable at **System → Activity log**, and per-record under
-the History tab on a user. Password hashes are never logged.
+whoever made them, plus sign-ins, sign-outs and failed login attempts with the
+originating IP and user agent. Readable at **System → Activity log**, and
+per-record under the History tab on a user. Password hashes are never logged.
+
+Auth events are recorded by `App\Listeners\LogAuthenticationActivity`. Laravel
+only scans `app/Listeners` because `bootstrap/app.php` asks it to via
+`withEvents(discover: ...)` — without that call a listener in that directory
+never runs. If you cache events (`php artisan event:cache`, or `optimize`),
+re-run `event:clear` after adding a listener or it will not fire.
 
 **Monitoring** — [Laravel Pulse](https://pulse.laravel.com) at `/pulse` on the
 database driver, behind a `view_pulse` permission rather than Pulse's default
