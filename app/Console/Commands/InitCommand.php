@@ -26,7 +26,10 @@ class InitCommand extends Command
 {
     protected $signature = 'init
         {--fresh : Drop all tables and re-run migrations}
-        {--skip-admin : Do not prompt to create a super admin}';
+        {--skip-admin : Do not create a super admin}
+        {--admin-name= : Super admin name, instead of being asked for it}
+        {--admin-email= : Super admin email, instead of being asked for it}
+        {--admin-password= : Super admin password, instead of being asked for it}';
 
     protected $description = 'Initialise the application: migrations, Shield permissions, and a super admin';
 
@@ -78,12 +81,12 @@ class InitCommand extends Command
     }
 
     /**
-     * `--fresh` drops every table, so it asks first — unless the caller has
-     * already opted out of interaction, in which case they have said as much.
+     * `--fresh` drops every table, so it asks first — unless there is nobody to
+     * ask, in which case passing the flag is itself the confirmation.
      */
     private function confirmDestructive(): bool
     {
-        if (! $this->input->isInteractive()) {
+        if (! $this->canPrompt()) {
             return true;
         }
 
@@ -93,14 +96,46 @@ class InitCommand extends Command
         );
     }
 
+    /**
+     * Whether there is a human on the other end who can answer a prompt.
+     *
+     * This mirrors how Laravel decides to put Laravel Prompts into interactive
+     * mode. Symfony's own `isInteractive()` is not enough on its own: it stays
+     * true whenever `--no-interaction` was not passed, including when stdin is
+     * a pipe rather than a terminal — which is the case under Git Bash/MinTTY,
+     * most IDE consoles, CI, and `docker run` without `-t`.
+     *
+     * Prompting anyway breaks in two different ways depending on the platform.
+     * On Windows every prompt uses Symfony's fallback, which re-asks until it
+     * gets a valid answer and so loops forever against a pipe. Everywhere else
+     * the prompt goes non-interactive, validates its empty default against
+     * `required`, and throws NonInteractiveValidationException.
+     */
+    private function canPrompt(): bool
+    {
+        if ($this->laravel->runningUnitTests()) {
+            return true;
+        }
+
+        return $this->input->isInteractive()
+            && defined('STDIN')
+            && stream_isatty(STDIN);
+    }
+
     private function generatePermissions(): bool
     {
         $exitCode = null;
 
         $this->components->task('Generating policies and permissions', function () use (&$exitCode): bool {
+            /*
+             * `--option` is passed explicitly because shield:generate asks
+             * what to generate when it is missing, and this command must not
+             * depend on someone being there to answer.
+             */
             $exitCode = Artisan::call('shield:generate', [
                 '--all' => true,
                 '--panel' => 'admin',
+                '--option' => 'policies_and_permissions',
                 '--no-interaction' => true,
             ]);
 
@@ -116,10 +151,29 @@ class InitCommand extends Command
         return true;
     }
 
+    /**
+     * Credentials come from options first, then the environment, and only then
+     * from a prompt — so this works the same in a terminal, a CI job and a
+     * Dockerfile.
+     */
     private function setUpSuperAdmin(): void
     {
-        if (! $this->input->isInteractive()) {
-            $this->components->warn('Skipping super admin — not running interactively. Use `php artisan shield:super-admin` later.');
+        $email = $this->credential('admin-email', 'ADMIN_EMAIL');
+        $password = $this->credential('admin-password', 'ADMIN_PASSWORD');
+
+        if (filled($email) && filled($password)) {
+            $this->createOrPromote($email, $password, $this->credential('admin-name', 'ADMIN_NAME') ?? 'Admin');
+
+            return;
+        }
+
+        if (! $this->canPrompt()) {
+            $this->components->warn('Skipping super admin — nothing to prompt with.');
+            $this->components->bulletList([
+                'php artisan init --admin-email=you@example.com --admin-password=secret',
+                'or set ADMIN_EMAIL and ADMIN_PASSWORD in .env',
+                'or run php artisan shield:super-admin --user=1 later',
+            ]);
 
             return;
         }
@@ -130,7 +184,7 @@ class InitCommand extends Command
             return;
         }
 
-        $email = text(
+        $email ??= text(
             label: 'Email address',
             required: true,
             validate: fn (string $value): ?string => filter_var($value, FILTER_VALIDATE_EMAIL) === false
@@ -138,23 +192,16 @@ class InitCommand extends Command
                 : null,
         );
 
-        $user = User::query()->where('email', $email)->first();
+        if (User::query()->where('email', $email)->exists()) {
+            $this->createOrPromote($email, null, null);
 
-        if ($user === null) {
-            $user = $this->createUser($email);
-            $this->components->info("Created {$user->email}.");
-        } else {
-            $this->components->info("Found {$user->email}.");
+            return;
         }
 
-        $this->promote($user);
-    }
+        $name = $this->credential('admin-name', 'ADMIN_NAME')
+            ?? text(label: 'Name', default: 'Admin', required: true);
 
-    private function createUser(string $email): User
-    {
-        $name = text(label: 'Name', default: 'Admin', required: true);
-
-        $password = password(
+        $password ??= password(
             label: 'Password',
             required: true,
             validate: fn (string $value): ?string => strlen($value) < 8
@@ -162,12 +209,44 @@ class InitCommand extends Command
                 : null,
         );
 
-        return User::create([
-            'name' => $name,
-            'email' => $email,
-            'password' => $password,
-            'email_verified_at' => now(),
-        ]);
+        $this->createOrPromote($email, $password, $name);
+    }
+
+    private function credential(string $option, string $env): ?string
+    {
+        $value = $this->option($option) ?? env($env);
+
+        return filled($value) ? (string) $value : null;
+    }
+
+    /**
+     * An existing account is promoted rather than duplicated, and keeps the
+     * password it already has.
+     */
+    private function createOrPromote(string $email, ?string $password, ?string $name): void
+    {
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user === null) {
+            if ($password === null || strlen($password) < 8) {
+                $this->components->error('A password of at least 8 characters is required to create '.$email.'.');
+
+                return;
+            }
+
+            $user = User::create([
+                'name' => $name ?? 'Admin',
+                'email' => $email,
+                'password' => $password,
+                'email_verified_at' => now(),
+            ]);
+
+            $this->components->info("Created {$user->email}.");
+        } else {
+            $this->components->info("Found {$user->email}.");
+        }
+
+        $this->promote($user);
     }
 
     private function promote(User $user): void
