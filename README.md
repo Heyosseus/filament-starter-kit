@@ -73,6 +73,17 @@ php artisan init
 `php artisan init` runs migrations, generates Shield's policies and
 permissions, and prompts you to create a super admin. It is safe to re-run.
 
+**Where there is no terminal to prompt at** — CI, a Dockerfile, Git Bash/MinTTY
+on Windows, some IDE consoles — pass the credentials instead, and nothing is
+asked:
+
+```bash
+php artisan init --admin-email=you@example.com --admin-password=your-password
+```
+
+`ADMIN_EMAIL`, `ADMIN_PASSWORD` and `ADMIN_NAME` in `.env` work the same way.
+With neither, `init` says so and finishes rather than hanging or failing.
+
 Then `composer dev` to start the server, queue worker, log viewer and Vite
 together, and open http://localhost:8000/admin.
 
@@ -82,7 +93,8 @@ together, and open http://localhost:8000/admin.
 |---|---|
 | `php artisan init` | Migrate, generate permissions, create a super admin |
 | `php artisan init --fresh` | The same, but drops every table first |
-| `php artisan init --skip-admin` | Skip the super admin prompt |
+| `php artisan init --skip-admin` | Skip the super admin entirely |
+| `php artisan init --admin-email=… --admin-password=…` | Create the super admin without being asked |
 | `php artisan shield:generate --all --panel=admin` | Regenerate permissions after adding a resource |
 | `php artisan shield:super-admin --user=1` | Promote an existing user |
 | `composer test` | Run the test suite |
