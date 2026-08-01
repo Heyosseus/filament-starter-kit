@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use BezhanSalleh\FilamentShield\Facades\FilamentShield;
 use BezhanSalleh\LanguageSwitch\LanguageSwitch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureModels();
+        $this->configurePolicies();
         $this->configureLanguageSwitch();
+    }
+
+    /**
+     * Laravel discovers a policy by convention only when the model sits in the
+     * app's own namespace. Role and Activity come from vendor packages, so
+     * their generated policies would never be found — Shield maps every
+     * resource model to its policy explicitly instead.
+     */
+    private function configurePolicies(): void
+    {
+        FilamentShield::enforcePolicies();
     }
 
     /**

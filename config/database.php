@@ -62,6 +62,16 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+
+            /*
+             * Where spatie/laravel-backup looks for mysqldump. Leave empty to
+             * take it from PATH; set DB_DUMP_BINARY_PATH to the containing
+             * directory when it is not there, which on Windows it usually is
+             * not (e.g. "C:\Program Files\MySQL\MySQL Server 9.1\bin").
+             */
+            'dump' => [
+                'dump_binary_path' => env('DB_DUMP_BINARY_PATH', ''),
+            ],
         ],
 
         'mariadb' => [
