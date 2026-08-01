@@ -93,10 +93,33 @@ php artisan shield:generate --all --panel=admin
 
 Then grant the new permissions to a role at **User Management → Roles**.
 
+Generated policies are not Pint-formatted, so run `composer lint` afterwards if
+you care about a clean diff.
+
 Note that Shield 4 formats permission keys as `Pascal:Case` — `ViewAny:User`,
 not `view_any_user`. Custom permissions declared in `config/filament-shield.php`
 are the exception: `format_custom_permission_keys` is off, so they are used
 exactly as written (which is why the Pulse permission is plain `view_pulse`).
+
+## Assets
+
+Filament's own CSS, JS and fonts are published into `public/css`, `public/js`
+and `public/fonts`. These are **not** committed — `composer install` republishes
+them automatically through the `filament:upgrade` step in `post-autoload-dump`,
+so they always match the installed version.
+
+If the panel ever renders as unstyled plain HTML, those assets are missing:
+
+```bash
+php artisan filament:assets
+```
+
+That is also the one thing to check on a deploy that skips composer scripts
+(`--no-scripts`), since nothing else will publish them. `PanelAssetsTest`
+guards against it by asserting every asset the panel references can actually be
+served.
+
+Application CSS and JS go through Vite into `public/build` (`npm run build`).
 
 ## Scheduling
 

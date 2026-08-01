@@ -16,6 +16,15 @@
 /public/build
 /public/hot
 /public/storage
+
+# Filament publishes its CSS, JS and fonts here, and composer republishes them
+# on every install via `filament:upgrade`. Committing them means git holds a
+# copy that silently goes stale when Filament is upgraded — the panel then
+# renders unstyled while still returning 200. Application assets go through
+# Vite into /public/build, so nothing hand-written lives in these directories.
+/public/css
+/public/js
+/public/fonts
 /storage/*.key
 /storage/pail
 /vendor
