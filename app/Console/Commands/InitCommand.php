@@ -1,245 +1,215 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
+use App\Models\Role;
 use App\Models\User;
+use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\password;
+use function Laravel\Prompts\text;
+
+/**
+ * One command to take a freshly cloned checkout to a working panel: schema,
+ * permissions, and an account that can sign in.
+ *
+ * Safe to re-run — migrations are additive unless --fresh is passed, permission
+ * generation is idempotent, and an existing user is promoted rather than
+ * duplicated.
+ */
 class InitCommand extends Command
 {
-    protected $signature = 'init {--fresh : Drop all tables and re-run migrations}';
-    protected $description = 'Initialize the application with migrations, Shield setup, and super admin';
+    protected $signature = 'init
+        {--fresh : Drop all tables and re-run migrations}
+        {--skip-admin : Do not prompt to create a super admin}';
+
+    protected $description = 'Initialise the application: migrations, Shield permissions, and a super admin';
 
     public function handle(): int
     {
-        $this->displayHeader();
+        $this->components->info('Initialising '.config('app.name'));
 
-        if (!$this->checkAndBuildAssets()) {
-            return Command::FAILURE;
+        if (! $this->runMigrations()) {
+            return self::FAILURE;
         }
 
-        if (!$this->runMigrations()) {
-            return Command::FAILURE;
+        if (! $this->generatePermissions()) {
+            return self::FAILURE;
         }
 
-        $this->generateShieldPermissions();
-        $this->setupSuperAdmin();
+        if (! $this->option('skip-admin')) {
+            $this->setUpSuperAdmin();
+        }
+
         $this->clearCaches();
-        $this->displaySummary();
+        $this->summarise();
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
-    protected function displayHeader(): void
+    private function runMigrations(): bool
     {
-        $this->info('🚀 Starting application initialization...');
-        $this->newLine();
-    }
-
-    protected function checkAndBuildAssets(): bool
-    {
-        $this->info('📋 Checking frontend dependencies...');
-
-        if (!file_exists(base_path('node_modules'))) {
-            $this->warn('⚠️  Node modules not found.');
-            $this->line('Please run: npm install && npm run build');
-            $this->newLine();
-
-            if (!$this->confirm('Continue without building assets?', true)) {
-                return false;
-            }
-
-            $this->info('⏭️  Skipping asset build');
-        } else {
-            $this->info('✅ Node modules found');
-
-            if ($this->confirm('Build frontend assets?', false)) {
-                $this->buildAssets();
-            }
-        }
-
-        $this->newLine();
-        return true;
-    }
-
-    protected function buildAssets(): void
-    {
-        $this->info('Building assets...');
-        exec('npm run build', $output, $returnCode);
-
-        if ($returnCode === 0) {
-            $this->info('✅ Assets built successfully');
-        } else {
-            $this->warn('⚠️  Asset build failed. Run: npm run build');
-        }
-    }
-
-    protected function runMigrations(): bool
-    {
-        $this->info('📦 Running migrations...');
-
         if ($this->option('fresh')) {
-            if (!$this->confirm('⚠️  This will drop all tables. Continue?', false)) {
-                $this->warn('❌ Cancelled');
+            if (! $this->confirmDestructive()) {
+                $this->components->warn('Cancelled — no changes made.');
+
                 return false;
             }
 
-            Artisan::call('migrate:fresh', [], $this->getOutput());
-            $this->info('✅ Fresh migrations completed');
-        } else {
-            Artisan::call('migrate', [], $this->getOutput());
-            $this->info('✅ Migrations completed');
+            $this->components->task(
+                'Dropping tables and re-running migrations',
+                fn (): bool => Artisan::call('migrate:fresh', ['--force' => true]) === 0,
+            );
+
+            return true;
         }
 
-        $this->newLine();
+        $this->components->task(
+            'Running migrations',
+            fn (): bool => Artisan::call('migrate', ['--force' => true]) === 0,
+        );
+
         return true;
     }
 
-    protected function generateShieldPermissions(): void
+    /**
+     * `--fresh` drops every table, so it asks first — unless the caller has
+     * already opted out of interaction, in which case they have said as much.
+     */
+    private function confirmDestructive(): bool
     {
-        $this->info('🛡️  Generating permissions and policies...');
+        if (! $this->input->isInteractive()) {
+            return true;
+        }
 
-        try {
-            Artisan::call('shield:generate', [
+        return confirm(
+            label: 'This drops every table in '.config('database.connections.'.config('database.default').'.database').'. Continue?',
+            default: false,
+        );
+    }
+
+    private function generatePermissions(): bool
+    {
+        $exitCode = null;
+
+        $this->components->task('Generating policies and permissions', function () use (&$exitCode): bool {
+            $exitCode = Artisan::call('shield:generate', [
                 '--all' => true,
                 '--panel' => 'admin',
-            ], $this->getOutput());
-            $this->info('✅ Permissions generated');
-        } catch (\Exception $e) {
-            $this->error('⚠️  Error: ' . $e->getMessage());
+                '--no-interaction' => true,
+            ]);
+
+            return $exitCode === 0;
+        });
+
+        if ($exitCode !== 0) {
+            $this->components->error('Shield could not generate permissions. Run `php artisan shield:generate --all --panel=admin` to see why.');
+
+            return false;
         }
 
-        $this->newLine();
+        return true;
     }
 
-    protected function setupSuperAdmin(): void
+    private function setUpSuperAdmin(): void
     {
-        $this->info('👤 Setting up super admin...');
+        if (! $this->input->isInteractive()) {
+            $this->components->warn('Skipping super admin — not running interactively. Use `php artisan shield:super-admin` later.');
 
-        if ($this->confirm('Create/assign super admin?', true)) {
-            $this->createOrAssignSuperAdmin();
-        } else {
-            $this->warn('⏭️  Skipped');
-        }
-
-        $this->newLine();
-    }
-
-    protected function clearCaches(): void
-    {
-        $this->info('🧹 Clearing caches...');
-
-        Artisan::call('cache:clear', [], $this->getOutput());
-        Artisan::call('config:clear', [], $this->getOutput());
-        Artisan::call('route:clear', [], $this->getOutput());
-        Artisan::call('view:clear', [], $this->getOutput());
-
-        $this->info('✅ Caches cleared');
-        $this->newLine();
-    }
-
-    protected function displaySummary(): void
-    {
-        $this->info('✨ Initialization completed!');
-        $this->newLine();
-
-        $this->line('📋 Summary:');
-        $this->line('  • Database migrations: ✅');
-        $this->line('  • Shield permissions: ✅');
-        $this->line('  • Super admin: ✅');
-        $this->line('  • Caches cleared: ✅');
-        $this->newLine();
-
-        if ($this->shouldShowAssetWarning()) {
-            $this->displayAssetWarning();
-        }
-
-        $this->info('🎉 Access your application at: ' . url('/admin'));
-    }
-
-    protected function shouldShowAssetWarning(): bool
-    {
-        return !file_exists(base_path('node_modules'))
-            || !file_exists(public_path('build/manifest.json'));
-    }
-
-    protected function displayAssetWarning(): void
-    {
-        $this->warn('⚠️  Frontend assets not built!');
-        $this->line('   Run: npm install && npm run build');
-        $this->newLine();
-    }
-
-    protected function createOrAssignSuperAdmin(): void
-    {
-        $email = $this->ask('Email address');
-
-        if (!$email) {
-            $this->error('Email is required!');
             return;
         }
 
-        $user = $this->findOrCreateUser($email);
-        $this->assignSuperAdminRole($user);
-        $this->displayUserInfo($user);
-    }
+        if (! confirm(label: 'Create or promote a super admin now?', default: true)) {
+            $this->components->warn('Skipped. Run `php artisan shield:super-admin` when you are ready.');
 
-    protected function findOrCreateUser(string $email): User
-    {
-        $user = User::where('email', $email)->first();
+            return;
+        }
 
-        if (!$user) {
-            $this->info('Creating new user...');
-            $user = $this->createNewUser($email);
-            $this->info('✅ User created');
+        $email = text(
+            label: 'Email address',
+            required: true,
+            validate: fn (string $value): ?string => filter_var($value, FILTER_VALIDATE_EMAIL) === false
+                ? 'Enter a valid email address.'
+                : null,
+        );
+
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user === null) {
+            $user = $this->createUser($email);
+            $this->components->info("Created {$user->email}.");
         } else {
-            $this->info('User found. Assigning role...');
+            $this->components->info("Found {$user->email}.");
         }
 
-        return $user;
+        $this->promote($user);
     }
 
-    protected function createNewUser(string $email): User
+    private function createUser(string $email): User
     {
-        $name = $this->ask('Name', 'Admin');
-        $password = $this->secret('Password (min 8 characters)');
+        $name = text(label: 'Name', default: 'Admin', required: true);
 
-        if (strlen($password) < 8) {
-            $this->error('Password must be at least 8 characters!');
-            exit(1);
-        }
+        $password = password(
+            label: 'Password',
+            required: true,
+            validate: fn (string $value): ?string => strlen($value) < 8
+                ? 'Password must be at least 8 characters.'
+                : null,
+        );
 
         return User::create([
             'name' => $name,
             'email' => $email,
-            'password' => Hash::make($password),
+            'password' => $password,
             'email_verified_at' => now(),
         ]);
     }
 
-    protected function assignSuperAdminRole(User $user): void
+    private function promote(User $user): void
     {
-        Role::firstOrCreate(
-            ['name' => 'super_admin'],
-            ['guard_name' => 'web']
-        );
+        $roleName = Utils::getSuperAdminName();
 
-        if (!$user->hasRole('super_admin')) {
-            $user->assignRole('super_admin');
-            $this->info('✅ Super admin role assigned');
-        } else {
-            $this->info('✅ Already has super admin role');
+        Role::findOrCreate($roleName, Utils::getFilamentAuthGuard());
+
+        if ($user->hasRole($roleName)) {
+            $this->components->info("{$user->email} already holds the {$roleName} role.");
+
+            return;
         }
+
+        $user->assignRole($roleName);
+        $this->components->info("Assigned {$roleName} to {$user->email}.");
     }
 
-    protected function displayUserInfo(User $user): void
+    private function clearCaches(): void
+    {
+        $this->components->task('Clearing caches', function (): bool {
+            /*
+             * event:clear matters as much as the rest: a cached event map
+             * predates any listener added since, and a stale one silently
+             * stops listeners firing rather than failing loudly.
+             */
+            foreach (['cache:clear', 'config:clear', 'route:clear', 'view:clear', 'event:clear'] as $command) {
+                Artisan::call($command);
+            }
+
+            return true;
+        });
+    }
+
+    private function summarise(): void
     {
         $this->newLine();
-        $this->line('📧 Email: ' . $user->email);
-        $this->line('👤 Name: ' . $user->name);
-        $this->line('🔑 Role: super_admin');
+
+        if (! file_exists(public_path('build/manifest.json'))) {
+            $this->components->warn('Frontend assets are not built yet — run `npm install && npm run build`.');
+        }
+
+        $this->components->info('Ready. The panel is at '.url('/admin').'.');
     }
 }
